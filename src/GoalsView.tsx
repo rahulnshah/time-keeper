@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Goal } from './model';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchGoals, addGoal, updateGoalCompletion, deleteGoal } from './features/goals/goalsSlice';
+import { RootState, AppDispatch } from './app/store'
 export default function GoalsView() {
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [title, setTitle] = useState<string>('');
-  const [hours, setHours] = useState<string>('0');
-  const [minutes, setMinutes] = useState<string>('5');
+  const dispatch = useDispatch<AppDispatch>();
+  const { goals, status, error } = useSelector((state : RootState) => state.goals);
 
-  const fetchGoals = async (): Promise<void> => {
-    const goals: Goal[] = await window.api.getGoals();
-    setGoals(goals);
-  };
+  const [title, setTitle] = useState('');
+  const [hours, setHours] = useState('0');
+  const [minutes, setMinutes] = useState('5');
 
-  const handleAddGoal = (): void => {
+  useEffect(() => {
+    dispatch(fetchGoals());
+  }, [dispatch]);
+
+  const handleAddGoal = () => {
     if (!title || !hours || !minutes) {
       alert('Please fill out all fields.');
       return;
@@ -25,7 +27,7 @@ export default function GoalsView() {
       isNaN(hoursNum) ||
       isNaN(minutesNum) ||
       hoursNum < 0 ||
-      hoursNum > 24 || // Set maximum hours to 24
+      hoursNum > 24 ||
       minutesNum < 0 ||
       minutesNum >= 60
     ) {
@@ -40,40 +42,22 @@ export default function GoalsView() {
     }
 
     const duration = `${hoursNum.toString().padStart(2, '0')}:${minutesNum.toString().padStart(2, '0')}`;
-    window.api.addGoal(title, duration);
+    const goal = {aTitle: title, aDuration: duration};
+    dispatch(addGoal(goal));
     setTitle('');
     setHours('0');
     setMinutes('5');
-    fetchGoals();
   };
 
-  const handleMarkAsCompleted = (id: number, currentStatus: boolean): void => {
-    window.api.updateGoalCompletion(id, !currentStatus);
-    fetchGoals();
+  const handleMarkAsCompleted = (id: number, currentStatus: boolean) => {
+    dispatch(updateGoalCompletion({ id, completed: !currentStatus }));
   };
 
-  const handleDeleteGoal = (id: number): void => {
+  const handleDeleteGoal = (id: number) => {
     if (confirm('Are you sure you want to delete this goal?')) {
-      window.api.deleteGoal(id);
-      fetchGoals();
+      dispatch(deleteGoal(id));
     }
   };
-
-  // Helper function to format duration
-  const formatDuration = (duration: string): string => {
-    const [hours, minutes] = duration.split(':').map(Number);
-    const parts = [];
-    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-    if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
-    return parts.join(' ');
-  };
-
-  useEffect((): (() => void) => {
-    fetchGoals();
-    return (): void => {
-      window.api.deleteCompletedGoals();
-    };
-  }, []);
 
   return (
     <div className="h-screen flex flex-col items-center justify-center bg-white text-black px-4">
@@ -94,7 +78,7 @@ export default function GoalsView() {
             onChange={(e) => setHours(e.target.value)}
             className="text-black px-4 py-2 rounded shadow border border-gray-300 w-20"
             min="0"
-            max="24" // Set maximum hours to 24
+            max="24"
           />
           <span>:</span>
           <input
@@ -115,6 +99,8 @@ export default function GoalsView() {
         </button>
       </div>
       <ul className="w-full max-w-md">
+        {status === 'loading' && <p>Loading...</p>}
+        {status === 'failed' && <p>Error: {error}</p>}
         {goals.map((goal) => (
           <li
             key={goal.id}
@@ -124,7 +110,7 @@ export default function GoalsView() {
           >
             <div>
               <h2 className="font-bold">{goal.title}</h2>
-              <p>{formatDuration(goal.duration)}</p>
+              <p>{goal.duration}</p>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -135,7 +121,7 @@ export default function GoalsView() {
               <button
                 onClick={() => handleDeleteGoal(goal.id)}
                 className="px-2 py-1 bg-red-500 text-white rounded shadow"
-                disabled={goal.completed} // Disable the button if the goal is completed
+                disabled={goal.completed}
               >
                 Delete
               </button>
