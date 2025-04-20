@@ -37,3 +37,9 @@ export const deleteGoal = (id: number): void => {
   const stmt = db.prepare('DELETE FROM goals WHERE id = ?');
   stmt.run(id);
 };
+
+// New function to toggle goal completion
+export const updateGoalCompletion = (id: number, completed: boolean): void => {
+  const stmt = db.prepare('UPDATE goals SET completed = ? WHERE id = ?');
+  stmt.run(completed ? 1 : 0, id);
+};

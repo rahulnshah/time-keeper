@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import { addGoal, getGoals, markGoalAsCompleted, deleteCompletedGoals, deleteGoal } from './database';
+import { addGoal, getGoals, markGoalAsCompleted, deleteCompletedGoals, deleteGoal, updateGoalCompletion } from './database';
 
 
 // Set up IPC handlers
@@ -26,6 +26,11 @@ ipcMain.handle('delete-completed-goals', () => {
 
 ipcMain.handle('delete-goal', (event, id) => {
   deleteGoal(id);
+  return true;
+});
+
+ipcMain.handle('update-goal-completion', (event, id, completed) => {
+  updateGoalCompletion(id, completed);
   return true;
 });
 

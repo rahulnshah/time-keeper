@@ -15,6 +15,9 @@ contextBridge.exposeInMainWorld('api', {
 
     deleteGoal: (id: number) => 
       ipcRenderer.invoke('delete-goal', id),
+
+    updateGoalCompletion: (id: number, completed: boolean) =>
+      ipcRenderer.invoke('update-goal-completion', id, completed)
 });
 
 // See the Electron documentation for details on how to use preload scripts:

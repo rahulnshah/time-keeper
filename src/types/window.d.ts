@@ -4,6 +4,7 @@ export interface GoalAPI {
     getGoals: () => Promise<Goal[]>;
     markGoalAsCompleted: (id: number) => Promise<boolean>;
     deleteCompletedGoals: () => Promise<boolean>;
+    updateGoalCompletion: (id: number, completed: boolean) => Promise<boolean>;
 }
 
 declare global {
