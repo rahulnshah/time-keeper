@@ -1,6 +1,33 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
+import { addGoal, getGoals, markGoalAsCompleted, deleteCompletedGoals, deleteGoal } from './database';
+
+
+// Set up IPC handlers
+ipcMain.handle('get-goals', () => {
+  return getGoals();
+});
+
+ipcMain.handle('add-goal', (event, title, duration) => {
+  addGoal(title, duration);
+  return true;
+});
+
+ipcMain.handle('mark-goal-completed', (event, id) => {
+  markGoalAsCompleted(id);
+  return true;
+});
+
+ipcMain.handle('delete-completed-goals', () => {
+  deleteCompletedGoals();
+  return true;
+});
+
+ipcMain.handle('delete-goal', (event, id) => {
+  deleteGoal(id);
+  return true;
+});
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
