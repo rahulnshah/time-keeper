@@ -13,9 +13,13 @@ db.exec(`
   )
 `);
 
-export const addGoal = (title: string, duration: string): void => {
+export const addGoal = (title: string, duration: string): Goal => {
   const stmt = db.prepare('INSERT INTO goals (title, duration) VALUES (?, ?)');
-  stmt.run(title, duration);
+  const info = stmt.run(title, duration);
+
+  // Fetch the last inserted goal using the lastInsertRowid
+  const getStmt = db.prepare('SELECT * FROM goals WHERE id = ?');
+  return getStmt.get(info.lastInsertRowid) as Goal;
 };
 
 export const getGoals = (): Goal[] => {

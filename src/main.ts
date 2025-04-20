@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { addGoal, getGoals, markGoalAsCompleted, deleteCompletedGoals, deleteGoal, updateGoalCompletion } from './database';
+import { Goal } from './model';
 
 
 // Set up IPC handlers
@@ -10,8 +11,8 @@ ipcMain.handle('get-goals', () => {
 });
 
 ipcMain.handle('add-goal', (event, title, duration) => {
-  addGoal(title, duration);
-  return true;
+  const goal: Goal = addGoal(title, duration);
+  return goal;
 });
 
 ipcMain.handle('mark-goal-completed', (event, id) => {
