@@ -4,7 +4,8 @@ import { Goal } from './model';
 export default function GoalsView() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [title, setTitle] = useState<string>('');
-  const [duration, setDuration] = useState<string>('00:05');
+  const [hours, setHours] = useState<string>('0');
+  const [minutes, setMinutes] = useState<string>('5');
 
   const fetchGoals = async (): Promise<void> => {
     const goals: Goal[] = await window.api.getGoals();
@@ -12,25 +13,59 @@ export default function GoalsView() {
   };
 
   const handleAddGoal = (): void => {
-    if (!title || !duration) {
+    if (!title || !hours || !minutes) {
       alert('Please fill out all fields.');
       return;
     }
-    const [hours, minutes] = duration.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes;
+
+    const hoursNum = parseInt(hours, 10);
+    const minutesNum = parseInt(minutes, 10);
+
+    if (
+      isNaN(hoursNum) ||
+      isNaN(minutesNum) ||
+      hoursNum < 0 ||
+      hoursNum > 24 || // Set maximum hours to 24
+      minutesNum < 0 ||
+      minutesNum >= 60
+    ) {
+      alert('Please enter valid hours (0-24) and minutes (0-59).');
+      return;
+    }
+
+    const totalMinutes = hoursNum * 60 + minutesNum;
     if (totalMinutes < 5 || totalMinutes > 1440) {
       alert('Duration must be between 5 minutes and 24 hours.');
       return;
     }
+
+    const duration = `${hoursNum.toString().padStart(2, '0')}:${minutesNum.toString().padStart(2, '0')}`;
     window.api.addGoal(title, duration);
     setTitle('');
-    setDuration('00:05');
+    setHours('0');
+    setMinutes('5');
     fetchGoals();
   };
 
   const handleMarkAsCompleted = (id: number): void => {
     window.api.markGoalAsCompleted(id);
     fetchGoals();
+  };
+
+  const handleDeleteGoal = (id: number): void => {
+    if (confirm('Are you sure you want to delete this goal?')) {
+      window.api.deleteGoal(id);
+      fetchGoals();
+    }
+  };
+
+  // Helper function to format duration
+  const formatDuration = (duration: string): string => {
+    const [hours, minutes] = duration.split(':').map(Number);
+    const parts = [];
+    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+    return parts.join(' ');
   };
 
   useEffect((): (() => void) => {
@@ -51,15 +86,30 @@ export default function GoalsView() {
           onChange={(e) => setTitle(e.target.value)}
           className="text-black px-4 py-2 rounded shadow border border-gray-300 mr-2"
         />
-        <input
-          type="time"
-          value={duration}
-          onChange={(e) => setDuration(e.target.value)}
-          className="text-black px-4 py-2 rounded shadow border border-gray-300"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            placeholder="Hours"
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+            className="text-black px-4 py-2 rounded shadow border border-gray-300 w-20"
+            min="0"
+            max="24" // Set maximum hours to 24
+          />
+          <span>:</span>
+          <input
+            type="number"
+            placeholder="Minutes"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+            className="text-black px-4 py-2 rounded shadow border border-gray-300 w-20"
+            min="0"
+            max="59"
+          />
+        </div>
         <button
           onClick={handleAddGoal}
-          className="ml-2 px-4 py-2 bg-blue-500 text-white rounded shadow"
+          className="ml-2 px-4 py-2 bg-blue-500 text-white rounded shadow mt-2"
         >
           Add Goal
         </button>
@@ -72,13 +122,21 @@ export default function GoalsView() {
           >
             <div>
               <h2 className="font-bold">{goal.title}</h2>
-              <p>{goal.duration}</p>
+              <p>{formatDuration(goal.duration)}</p> {/* Use the helper function here */}
             </div>
-            <input
-              type="checkbox"
-              checked={goal.completed}
-              onChange={() => handleMarkAsCompleted(goal.id)}
-            />
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={goal.completed}
+                onChange={() => handleMarkAsCompleted(goal.id)}
+              />
+              <button
+                onClick={() => handleDeleteGoal(goal.id)}
+                className="px-2 py-1 bg-red-500 text-white rounded shadow"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>

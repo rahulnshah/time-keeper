@@ -32,3 +32,8 @@ export const deleteCompletedGoals = (): void => {
   const stmt = db.prepare('DELETE FROM goals WHERE completed = 1');
   stmt.run();
 };
+
+export const deleteGoal = (id: number): void => {
+  const stmt = db.prepare('DELETE FROM goals WHERE id = ?');
+  stmt.run(id);
+};
