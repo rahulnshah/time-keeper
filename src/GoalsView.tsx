@@ -47,8 +47,8 @@ export default function GoalsView() {
     fetchGoals();
   };
 
-  const handleMarkAsCompleted = (id: number): void => {
-    window.api.markGoalAsCompleted(id);
+  const handleMarkAsCompleted = (id: number, currentStatus: boolean): void => {
+    window.api.updateGoalCompletion(id, !currentStatus);
     fetchGoals();
   };
 
@@ -118,21 +118,24 @@ export default function GoalsView() {
         {goals.map((goal) => (
           <li
             key={goal.id}
-            className="flex justify-between items-center bg-gray-100 p-4 mb-2 rounded shadow"
+            className={`flex justify-between items-center p-4 mb-2 rounded shadow ${
+              goal.completed ? 'bg-gray-300 opacity-50' : 'bg-gray-100'
+            }`}
           >
             <div>
               <h2 className="font-bold">{goal.title}</h2>
-              <p>{formatDuration(goal.duration)}</p> {/* Use the helper function here */}
+              <p>{formatDuration(goal.duration)}</p>
             </div>
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={goal.completed}
-                onChange={() => handleMarkAsCompleted(goal.id)}
+                onChange={() => handleMarkAsCompleted(goal.id, goal.completed)}
               />
               <button
                 onClick={() => handleDeleteGoal(goal.id)}
                 className="px-2 py-1 bg-red-500 text-white rounded shadow"
+                disabled={goal.completed} // Disable the button if the goal is completed
               >
                 Delete
               </button>
