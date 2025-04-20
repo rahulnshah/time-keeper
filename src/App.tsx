@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
-import GoalsView from './GoalsView';
-import TimeView from './TimeView';
+import GoalsView from './components/GoalsView';
+import TimeView from './components/TimeView';
 
 export default function App() {
   return (

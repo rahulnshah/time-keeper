@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGoals, addGoal, updateGoalCompletion, deleteGoal } from './features/goals/goalsSlice';
-import { RootState, AppDispatch } from './app/store'
+import { fetchGoals, addGoal, updateGoalCompletion, deleteGoal } from '../features/goals/goalsSlice';
+import { RootState, AppDispatch } from '../app/store'
 export default function GoalsView() {
   const dispatch = useDispatch<AppDispatch>();
   const { goals, status, error } = useSelector((state : RootState) => state.goals);
